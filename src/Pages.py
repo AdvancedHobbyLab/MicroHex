@@ -270,6 +270,8 @@ def status_page(state):
         <table>
             <tr><td><span>Action: </span></td><td><span id="action">{"Manual" if state["action"] == 0 else "User Controlled" if state["action"] == 1 else "Scripted"}</span></td></tr>
             <tr><td><span>Uptime: </span></td><td><span id="uptime">0:00:00</span></td></tr>
+            <tr><td><span>Warnings: </span></td><td><span id="warnings">0</span></td></tr>
+            <tr><td><span>Errors: </span></td><td><span id="errors">0</span></td></tr>
         </table>
     </div>
     <script>
@@ -284,11 +286,15 @@ function GetStatus() {{
     xhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
     xhttp.onload = function(){{
         state = JSON.parse(xhttp.response);
+        
         uptime = document.querySelector("#uptime");
         seconds = state['uptime'] % 60;
         minutes = Math.floor(state['uptime'] / 60) % 60;
         hours = Math.floor(state['uptime'] / 3600);
         uptime.innerHTML = hours.toString() + ":" + pad(minutes, 2) + ":" + pad(seconds, 2);
+        
+        document.querySelector('#warnings').innerHTML = state['warnings'];
+        document.querySelector('#errors').innerHTML = state['errors'];
         
         setTimeout(GetStatus(), 1000);
     }}

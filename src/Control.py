@@ -1,6 +1,7 @@
 import Hardware as hw
 import Legs
 import Values
+from Logger import Logger
 
 import time
 import math
@@ -294,13 +295,13 @@ class Control:
         #self.handlers.append(TestSequence(self.hexapod.get_servo(15)))
         
         self.legs = [
-            Legs.Leg(self.hexapod.get_servo(2), hw.FlippedServo(self.hexapod.get_servo(1)), self.hexapod.get_servo(0), 135, [-31, 60, 0]),  # Front Left
-            Legs.Leg(self.hexapod.get_servo(5), hw.FlippedServo(self.hexapod.get_servo(4)), self.hexapod.get_servo(3), 180, [-40, 0, 0]),  # Mid Left
-            Legs.Leg(self.hexapod.get_servo(8), hw.FlippedServo(self.hexapod.get_servo(7)), self.hexapod.get_servo(6), 225, [-31, -60, 0]),  # Back Left
+            Legs.Leg(self.hexapod.get_servo(2), hw.FlippedServo(self.hexapod.get_servo(1)), self.hexapod.get_servo(0), 135, [-31, 60, 0], "Front Left"),
+            Legs.Leg(self.hexapod.get_servo(5), hw.FlippedServo(self.hexapod.get_servo(4)), self.hexapod.get_servo(3), 180, [-40, 0, 0], "Mid Left"),
+            Legs.Leg(self.hexapod.get_servo(8), hw.FlippedServo(self.hexapod.get_servo(7)), self.hexapod.get_servo(6), 225, [-31, -60, 0], "Back Left"),
             
-            Legs.Leg(hw.FlippedServo(self.hexapod.get_servo(11)), self.hexapod.get_servo(10), hw.FlippedServo(self.hexapod.get_servo(9)), -45, [31, -60, 0]),  # Back Right
-            Legs.Leg(hw.FlippedServo(self.hexapod.get_servo(14)), self.hexapod.get_servo(13), hw.FlippedServo(self.hexapod.get_servo(12)), 0, [40, 0, 0]), # Mid Right
-            Legs.Leg(hw.FlippedServo(self.hexapod.get_servo(17)), self.hexapod.get_servo(16), hw.FlippedServo(self.hexapod.get_servo(15)), 45, [31, 60, 0])  # Front Right
+            Legs.Leg(hw.FlippedServo(self.hexapod.get_servo(11)), self.hexapod.get_servo(10), hw.FlippedServo(self.hexapod.get_servo(9)), -45, [31, -60, 0], "Back Right"),
+            Legs.Leg(hw.FlippedServo(self.hexapod.get_servo(14)), self.hexapod.get_servo(13), hw.FlippedServo(self.hexapod.get_servo(12)), 0, [40, 0, 0], "Mid Right"),
+            Legs.Leg(hw.FlippedServo(self.hexapod.get_servo(17)), self.hexapod.get_servo(16), hw.FlippedServo(self.hexapod.get_servo(15)), 45, [31, 60, 0], "Front Right")
         ]
         self.ik_handler = EventGroup(self.legs)
         self.handlers.append(self.ik_handler)

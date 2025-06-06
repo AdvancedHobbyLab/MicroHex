@@ -10,6 +10,11 @@ gc.collect()
 import config
 import Web
 import Control
+from Logger import Logger
+
+# Setup Logging
+Logger.setup_logger("MicroHex")
+Logger.info("Booting up")
 
 # Turn on WiFi and connect
 wifi = network.WLAN(network.STA_IF)
@@ -27,16 +32,25 @@ while connection_timeout > 0:
 
 # Check if connection is successful
 if wifi.status() != 3:
+    Logger.err("Failed to establish a network connection")
     raise RuntimeError('Failed to establish a network connection')
 else:
     print('WiFi connection successful!')
     network_info = wifi.ifconfig()
     print('IP address:', network_info[0])
+    Logger.info(f"IP Adress: {network_info[0]}")
 
 control = Control.Control()
 
 server = Web.Server(control)
 
 while True:
-    server.poll()
-    control.step()
+    try:
+        server.poll()
+    except Exception as e:
+        Logger.err(f"Server Error: {str(e)}")
+    
+    try:
+        control.step()
+    except Exception as e:
+        Logger.err(f"Control step: {str(e)}")

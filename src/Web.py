@@ -7,6 +7,7 @@ import select
 import json
 
 import Pages
+from Logger import Logger
 
 class Server():
     def __init__(self, control):
@@ -70,8 +71,9 @@ class Server():
                             self.control.set_speed(float(post['speed']))
                     elif request == "/get_status":
                         content = "application/json"
-                        status = {"state": state["action"], "uptime":self.control.get_uptime()}
+                        status = {"state": state["action"], "uptime":self.control.get_uptime(), "warnings":Logger.get_num_warn(), "errors":Logger.get_num_err()}
                         response = json.dumps(status)
+                        print(f"status {response}")
                     elif request == "/get_servo_info":
                         content = "application/json"
                         response = []
