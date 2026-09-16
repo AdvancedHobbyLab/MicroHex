@@ -1,4 +1,5 @@
 from machine import Pin, PWM, I2C
+import rp2
 import time
 import ustruct
 import json
@@ -137,6 +138,65 @@ class I2CServo(Servo):
         data = self.bus.readfrom_mem(self.addr, reg, nbytes)
         
         return data
+
+@rp2.asm_pio(
+    set_init=rp2.PIO.OUT_LOW,
+    out_shiftdir=rp2.PIO.SHIFT_RIGHT
+)
+def servo_pio():
+
+    # The FIFO contains:
+    #
+    # Bits  0-15 = HIGH pulse loop count
+    # Bits 16-31 = LOW pulse loop count
+
+    wrap_target()
+
+    # Get a new pulse value if one is available.
+    # If the FIFO is empty, keep the previous value.
+    pull(noblock)
+    mov(isr, osr)
+
+    # Extract HIGH count
+    out(x, 16)
+
+    # Extract LOW count
+    out(y, 16)
+
+    # Start servo pulse
+    set(pins, 1)
+
+    # Wait for HIGH pulse
+    label("high")
+    jmp(x_dec, "high")
+
+    # End servo pulse
+    set(pins, 0)
+
+    # Wait for LOW portion of frame
+    label("low")
+    jmp(y_dec, "low")
+    
+    mov(x, isr)
+
+    wrap()
+
+class PIOServo(Servo):
+    def __init__(self, sm_id, pin, freq=50):
+        super(PIOServo, self).__init__(4095)
+        
+        self._sm = rp2.StateMachine(
+            sm_id,
+            servo_pio,
+            freq=1_000_000,
+            set_base=Pin(pin)
+        )
+        
+        self._sm.active(1)
+        
+    def _update_servo(self, angle):
+        self._sm.put(self._get_duty(angle))
+        
     
 class Hexapod:
     def __init__(self, config=None):
