@@ -1,2 +1,4 @@
 SSID = ''
 PASSWORD = ''
+
+HARDWARE = 'V2'

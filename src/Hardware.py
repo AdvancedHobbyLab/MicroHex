@@ -4,6 +4,9 @@ import time
 import ustruct
 import json
 
+import config
+from Logger import Logger
+
 gpios = [2,3,4, 6,7,8, 10,11,12]
 i2cs = [0,1,2, 4,5,6, 8,9,10]
 
@@ -85,7 +88,6 @@ class GPIOServo(Servo):
         
     def _update_servo(self, angle):
         self.pwm.duty_u16(self._get_duty(angle))
-        pass
     
     def release(self):
         self.pwm.duty_u16(0)
@@ -106,7 +108,6 @@ class I2CServo(Servo):
         pulse = self._get_duty(angle)
         data = ustruct.pack('<HH', 0, pulse)
         self.bus.writeto_mem(self.addr, self._start,  data)
-        pass
     
     def release(self):
         data = ustruct.pack('<HH', 0, 4096)
@@ -199,33 +200,50 @@ class PIOServo(Servo):
         
     
 class Hexapod:
-    def __init__(self, config=None):
-        gpios = [2,3,4, 6,7,8, 10,11,12]
-        i2cs = [0,1,2, 4,5,6, 8,9,10]
+    def __init__(self, config_file=None):
         
-        i2c = I2C(0,scl=Pin(21),sda=Pin(20))
-        address = 0x40
-        devices = i2c.scan()
-        
-        ## Setup PCA9685
-        self._i2c_write(i2c, address, 0, 0x20)
-        self._i2c_write(i2c, address, 0, 0x10)
-        self._i2c_write(i2c, address, 0xfe, 0x79)
-        self._i2c_write(i2c, address, 0, 0x20)
-        time.sleep_us(5)
-        
-        self.servos = []
-        for i in gpios:
-            servo = GPIOServo(i)
-            self.servos.append(servo)
+        if config.HARDWARE == 'V1':
+            gpios = [2,3,4, 6,7,8, 10,11,12]
+            i2cs = [0,1,2, 4,5,6, 8,9,10]
             
-        for i in i2cs:
-            servo = I2CServo(i2c, address, i)
-            self.servos.append(servo)
+            i2c = I2C(0,scl=Pin(21),sda=Pin(20))
+            address = 0x40
+            devices = i2c.scan()
+            
+            ## Setup PCA9685
+            self._i2c_write(i2c, address, 0, 0x20)
+            self._i2c_write(i2c, address, 0, 0x10)
+            self._i2c_write(i2c, address, 0xfe, 0x79)
+            self._i2c_write(i2c, address, 0, 0x20)
+            time.sleep_us(5)
+            
+            self.servos = []
+            for i in gpios:
+                servo = GPIOServo(i)
+                self.servos.append(servo)
+            
+        elif config.HARDWARE == 'V2':
+            self.servo_enable = Pin(22, Pin.OUT)
+            self.servo_enable.on()
+            
+            gpios = [0,1,2, 3,4,5, 6,7,8, 9,10,11, 12,13,14, 15]
         
-        if config is not None:
+            self.servos = []
+            for i in gpios:
+                servo = GPIOServo(i)
+                self.servos.append(servo)
+            
+            self.servos.append(PIOServo(0, 27))
+            self.servos.append(PIOServo(1, 26))
+        
+        else:
+            err = f"Unknown hardware configuration: {config.HARDWARE}"
+            Logger.err(err)
+            raise RuntimeError(err)
+        
+        if config_file is not None:
             try:
-                with open(config, "r") as f:
+                with open(config_file, "r") as f:
                     c = json.loads(f.read())
                     for i, servo in enumerate(self.servos):
                         servo.set_min_angle(c["servos"]["min"][i])
@@ -233,7 +251,9 @@ class Hexapod:
                         servo.set_offset(c["servos"]["offset"][i])
                     
             except:
-                print(f"Unable to read config file: {config}")
+                info = f"Unable to read config file: {config_file}"
+                Logger.info(info)
+                print(info)
                 
         
     def get_servo(self, index):

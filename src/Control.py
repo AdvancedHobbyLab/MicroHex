@@ -281,7 +281,7 @@ class Control:
         self.last_time = time.ticks_us()
         self.start_time = time.time()
         
-        self.hexapod = hw.Hexapod(config="config.json")
+        self.hexapod = hw.Hexapod(config_file="config.json")
         
         self.stance = 0
         
