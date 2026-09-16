@@ -57,7 +57,7 @@ class Animator(EventHandler):
             self.animation_done()
             
             if self.remaining_delta != 0:
-                self.remaining_delta -= elapsed
+                self.remaining_delta += remaining
                 self.__update_animation()
         else:
             self.__update_animation()
