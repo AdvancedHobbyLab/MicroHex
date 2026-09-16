@@ -184,7 +184,10 @@ def servo_pio():
 
 class PIOServo(Servo):
     def __init__(self, sm_id, pin, freq=50):
-        super(PIOServo, self).__init__(4095)
+        f = 1_000_000
+        self._period_us = f // freq
+        
+        super(PIOServo, self).__init__(self._period_us)
         
         self._sm = rp2.StateMachine(
             sm_id,
@@ -196,8 +199,21 @@ class PIOServo(Servo):
         self._sm.active(1)
         
     def _update_servo(self, angle):
-        self._sm.put(self._get_duty(angle))
         
+        # Reasonable safety limits
+        pulse_us = max(500, min(2500, self._get_duty(angle)))
+        
+        low_us = self._period_us - pulse_us
+        
+        # Correct for clock cycles used by servo_pio operations
+        high_count = pulse_us - 1
+        low_count = low_us - 4
+        
+        # Pack values into single 32 bit value
+        value = high_count | (low_count << 16)
+        
+        # Push value
+        self._sm.put(value)
     
 class Hexapod:
     def __init__(self, config_file=None):
