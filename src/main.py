@@ -40,16 +40,20 @@ else:
     print('IP address:', network_info[0])
     Logger.info(f"IP Adress: {network_info[0]}")
 
+# Initialize robot hardware
 control = Control.Control()
 
+# Initialize web server
 server = Web.Server(control)
 
 while True:
+    # Handle webserver events
     try:
         server.poll()
     except Exception as e:
         Logger.err(f"Server Error: {str(e)}")
     
+    # Handle robot hardware events
     try:
         control.step()
     except Exception as e:

@@ -19,6 +19,7 @@ class EventGroup(EventHandler):
         for handler in self.__handlers:
             handler.update(elapsed)
 
+# Base class for creating animations by interpolating between points or angles as a function of time
 class Animator(EventHandler):
     def __init__(self, dest):
         self.dest_value = dest
@@ -38,6 +39,9 @@ class Animator(EventHandler):
         self.remaining_delta = self.target_delta
         self.curve = curve
         
+    # Notification that the current animation is finished
+    # Can be used to load the next key frame
+    # Should be overwritten in derived classes
     def animation_done(self):
         pass
     
@@ -79,10 +83,10 @@ class Animator(EventHandler):
         elif self.curve == "ramp":
             ratio = ratio*ratio
             
-        
         new_value = self.start_value+(self.target_value-self.start_value)*ratio
         self.dest_value.set_value(new_value)
 
+# Implements basic walking animation
 class LegAnimator(Animator):
     def __init__(self, leg, state, cycle_order=0, plane=Values.Plane(0, 0, 0)):
         super().__init__(leg.get_point())
@@ -286,6 +290,7 @@ class ScriptHandler(EventHandler):
         for leg in self.legs:
             leg.update(elapsed)
 
+# Manages the operation of the robot
 class Control:
     def __init__(self):
         self.last_time = time.ticks_us()
@@ -302,8 +307,6 @@ class Control:
         for i in range(18):
             self.hexapod.get_servo(i).set_angle(90)
             
-        #self.handlers.append(TestSequence(self.hexapod.get_servo(15)))
-        
         if config.HARDWARE == "V1":
             self.legs = [
                 Legs.Leg(self.hexapod.get_servo(2), hw.FlippedServo(self.hexapod.get_servo(1)), self.hexapod.get_servo(0), 135, [-31, 60, 0], "Front Left"),

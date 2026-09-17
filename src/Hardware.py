@@ -7,9 +7,7 @@ import json
 import config
 from Logger import Logger
 
-gpios = [2,3,4, 6,7,8, 10,11,12]
-i2cs = [0,1,2, 4,5,6, 8,9,10]
-
+# Interface class for servos
 class ServoInterface:
     
     def set_angle(self, angle):
@@ -18,6 +16,7 @@ class ServoInterface:
     def get_angle(self):
         pass
     
+# Servo wrapper that flips the orientation
 class FlippedServo(ServoInterface):
     def __init__(self, servo):
         self.__servo = servo
@@ -28,6 +27,8 @@ class FlippedServo(ServoInterface):
     def get_angle(self):
         return 180-self.__servo.get_angle()
 
+# Base servo class
+# All servo types should extend this class
 class Servo(ServoInterface):
     def __init__(self, resolution=1024):
         period = 1000000 / 50
@@ -80,6 +81,7 @@ class Servo(ServoInterface):
     def release(self):
         pass
     
+# Servo using the PWM signal from a GPIO pin
 class GPIOServo(Servo):
     def __init__(self, pin_num):
         super(GPIOServo, self).__init__(65535)
@@ -92,6 +94,7 @@ class GPIOServo(Servo):
     def release(self):
         self.pwm.duty_u16(0)
     
+# Servo using the I2C interface through a PCA9685 servo controller
 class I2CServo(Servo):
     def __init__(self, bus, addr, port):
         super(I2CServo, self).__init__(4095)
@@ -182,6 +185,7 @@ def servo_pio():
 
     wrap()
 
+# Servo using a PWM signal generated from a PIO pin from a Raspberry Pi Pico MCU
 class PIOServo(Servo):
     def __init__(self, sm_id, pin, freq=50):
         f = 1_000_000
@@ -215,9 +219,11 @@ class PIOServo(Servo):
         # Push value
         self._sm.put(value)
     
+# Main class for initializing and accessing the hardware of the hexapod
 class Hexapod:
     def __init__(self, config_file=None):
         
+        # Initialize hardware
         if config.HARDWARE == 'V1':
             gpios = [2,3,4, 6,7,8, 10,11,12]
             i2cs = [0,1,2, 4,5,6, 8,9,10]
@@ -257,6 +263,7 @@ class Hexapod:
             Logger.err(err)
             raise RuntimeError(err)
         
+        # Load configuration file if available
         if config_file is not None:
             try:
                 with open(config_file, "r") as f:

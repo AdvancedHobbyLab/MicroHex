@@ -4,6 +4,7 @@ import config
 
 import math
 
+# Handles inverse kinematic equasions for a single leg
 class Leg:
     if config.HARDWARE == "V1":
         __s = 30  # length of sholder
@@ -21,7 +22,7 @@ class Leg:
         self.__point = Values.Point(self.get_center())
         self.__name = name
         
-        
+    # Get the default rest position for the leg
     def get_center(self):
         length = self.__s+self.__l
         angle_rad = self.__angle/180*math.pi
@@ -79,7 +80,4 @@ class Leg:
             self.__servos[2].set_angle(F)
         except Exception as e:
             Logger.err(f"IK error (Leg: {self.__name}): {str(e)}")
-        #print()
-        #print(f"S: {S}")
-        #print(f"L: {L}")
-        #print(f"F: {F}")
+            
