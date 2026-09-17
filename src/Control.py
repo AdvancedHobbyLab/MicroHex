@@ -108,29 +108,38 @@ class LegAnimator(Animator):
             if self.center[0] < 0:
                 forward *= -1
         distance = math.sqrt(forward*forward + left*left)
-        if distance != 0:
-            forward = forward / distance * -40
-            left = left / distance * 40
+        travel = 40 # Distance to travel in mm
         
+        if distance != 0:
+            forward = forward / distance * -travel
+            left = left / distance * travel
+        
+        # Lift foot
         if self.state == 0:
             lift = 0
             if distance != 0:
                 lift = -40
             self.state = 1
             target = [self.center[0]+left, self.center[1]+forward, self.center[2]+lift]
-            self.animate(Values.Point(target), delay/3)
+            self.animate(Values.Point(target), delay/3, "smooth")
+            
+        # Move lifted foot into position
         elif self.state == 1:
             lift = 0
             if distance != 0:
                 lift = -40
             self.state = 2
             target = [self.center[0]+left*-1, self.center[1]+forward*-1, self.center[2]+lift]
-            self.animate(Values.Point(target), delay/3)
+            self.animate(Values.Point(target), delay/3, "smooth")
             #print(target)
+            
+        # Place foot on ground
         elif self.state == 2:
             self.state = 3
             target = [self.center[0]+left*-1, self.center[1]+forward*-1, self.center[2]]
-            self.animate(Values.Point(target), delay/3)
+            self.animate(Values.Point(target), delay/3, "smooth")
+            
+        # Travel on ground
         elif self.state == 3:
             self.state = 0
             target = [self.center[0]+left, self.center[1]+forward, self.center[2]]

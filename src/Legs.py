@@ -1,12 +1,18 @@
 import Values
 from Logger import Logger
+import config
 
 import math
 
 class Leg:
-    __s = 30  # length of sholder
-    __l = 50  # length of leg
-    __f = 82  # length of foot
+    if config.HARDWARE == "V1":
+        __s = 30  # length of sholder
+        __l = 50  # length of leg
+        __f = 82  # length of foot
+    elif config.HARDWARE == "V2":
+        __s = 30  # length of sholder
+        __l = 80  # length of leg
+        __f = 100  # length of foot
     
     def __init__(self, shoulder, leg, foot, angle, offset, name=""):
         self.__angle = angle
@@ -36,9 +42,9 @@ class Leg:
         y -= self.__offset[1]
         z -= self.__offset[2]
         
-        s = 30  # length of sholder
-        l = 50  # length of leg
-        f = 82  # length of foot
+        s = self.__s  # length of sholder
+        l = self.__l  # length of leg
+        f = self.__f  # length of foot
         
         try:
             a = math.sqrt(x*x + y*y) - s
